@@ -16,6 +16,8 @@ require('dotenv').config({
   path: `.env.${process.env.NODE_ENV || 'development'}`
 })
 
+const USES_SSL = process.env.SSL_KEY && process.env.SSL_CERT
+
 const db = sharedbMongo(process.env.MONGODB_URI)
 const jwtVerify = util.promisify(jwt.verify)
 
@@ -90,11 +92,11 @@ function startServer () {
     res.send('This is an API. You should not be here. Go away! :trollface:')
   })
   let server
-  if (process.env.NODE_ENV === 'production') {
+  if (USES_SSL) {
     server = https.createServer(
       {
-        key: fs.readFileSync('@todo'),
-        cert: fs.readFileSync('@todo')
+        key: fs.readFileSync(process.env.SSL_KEY),
+        cert: fs.readFileSync(process.env.SSL_CERT)
       },
       app
     )
@@ -138,7 +140,7 @@ function startServer () {
   server.listen(process.env.PORT)
   console.log(
     `Listening on ${
-      process.env.NODE_ENV === 'production' ? 'http' : 'https'
+      USES_SSL ? 'https' : 'http'
     }://localhost:${process.env.PORT}`
   )
 }
